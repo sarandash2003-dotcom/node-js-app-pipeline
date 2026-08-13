@@ -21,21 +21,31 @@ pipeline {
       }
     }
     
-    stage('SonarQube Analysis') {
-      steps {
+stage('SonarQube Analysis') {
+    steps {
         withSonarQubeEnv('sonarqube') {
-          sh '''
-            cd node-app
-            npx sonar-scanner \
-              -Dsonar.projectKey=node-express-app \
-              -Dsonar.projectName="Node Express App" \
-              -Dsonar.sources=. \
-              -Dsonar.exclusions=node_modules/**,coverage/** \
-              -Dsonar.host.url=$SONAR_HOST_URL
-          '''
+            sh '''
+                apk add --no-cache openjdk17-jre curl unzip
+
+                curl -L -o /tmp/sonar-scanner.zip \
+                  https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-7.2.0.5079-linux-x64.zip
+
+                unzip -q /tmp/sonar-scanner.zip -d /opt/
+
+                chmod +x /opt/sonar-scanner-7.2.0.5079-linux-x64/bin/sonar-scanner
+
+                cd node-app
+
+                /opt/sonar-scanner-7.2.0.5079-linux-x64/bin/sonar-scanner \
+                  -Dsonar.projectKey=node-express-app \
+                  -Dsonar.projectName="Node Express App" \
+                  -Dsonar.sources=. \
+                  -Dsonar.exclusions=node_modules/**,coverage/** \
+                  -Dsonar.host.url=$SONAR_HOST_URL
+            '''
         }
-      }
     }
+}
 
     stage('Build and Push Docker Image') {
       environment {
