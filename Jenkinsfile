@@ -5,9 +5,22 @@ pipeline {
       args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
     }
   }
+  options {
+    skipDefaultCheckout(true)
+  }
+  environment {
+    DOCKER_REPO = 'dassaran/ultimate-cicd'
+  }
   stages {
+    stage('Prepare Tooling') {
+      steps {
+        sh 'apk add --no-cache docker-cli git openjdk17-jre'
+      }
+    }
     stage('Checkout') {
       steps {
+        sh 'rm -rf node-app/node_modules repo-temp || true'
+        checkout scm
         sh 'echo "Starting build process..."'
       }
     }
@@ -39,7 +52,7 @@ pipeline {
 
     stage('Build and Push Docker Image') {
       environment {
-        DOCKER_IMAGE = "dassaran504/ultimate-cicd:${BUILD_NUMBER}"
+        DOCKER_IMAGE = "${DOCKER_REPO}:${BUILD_NUMBER}"
       }
       steps {
         script {
@@ -56,32 +69,36 @@ pipeline {
     stage('Update Deployment File') {
       environment {
         GIT_REPO_NAME = "node-js-app-pipeline"
-        GIT_USER_NAME = "dassaran504"
+        GIT_USER_NAME = "sarandash2003-dotcom"
       }
       steps {
         withCredentials([
-            usernamePassword(
+            string(
                 credentialsId: 'github',
-                usernameVariable: 'GITHUB_USERNAME',
-                passwordVariable: 'GITHUB_TOKEN'
+                variable: 'GITHUB_TOKEN'
             )
         ]) {
             sh '''
                 rm -rf repo-temp
-                git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git repo-temp
+                git clone https://x-access-token:${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git repo-temp
                 cd repo-temp
                 
                 git config user.email "sarandash2003@gmail.com"
                 git config user.name "${GIT_USER_NAME}"
 
-                sed -i "s|image: .*|image: dassaran504/ultimate-cicd:${BUILD_NUMBER}|g" node-app-manifests/deployment.yml
+                sed -i "s|image: .*|image: ${DOCKER_REPO}:${BUILD_NUMBER}|g" node-app-manifests/deployment.yml
 
                 git add node-app-manifests/deployment.yml
-                git commit -m "Update static site image tag to ${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
-                git push origin main
+                git commit -m "Update node app image tag to ${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
+                git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git main
             '''
         }
       }
+    }
+  }
+  post {
+    always {
+      sh 'rm -rf node-app/node_modules repo-temp || true'
     }
   }
 }
