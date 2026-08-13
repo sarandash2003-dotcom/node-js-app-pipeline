@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: node-app
-        image: dassaran504/ultimate-cicd:latest
+        image: dassaran504/ultimate-cicd:6
         ports:
         - containerPort: 3000
         resources:
@@ -31,4 +31,10 @@ spec:
             path: /health
             port: 3000
           initialDelaySeconds: 10
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
           periodSeconds: 5
