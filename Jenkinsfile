@@ -71,13 +71,13 @@ pipeline {
         GIT_REPO_NAME = "node-js-app-pipeline"
         GIT_USER_NAME = "dassaran504"
       }
-      steps {
-        withCredentials([
-            string(
-                credentialsId: 'github',
-                variable: 'GITHUB_TOKEN'
-            )
-        ]) {
+      withCredentials([
+    usernamePassword(
+        credentialsId: 'github',
+        usernameVariable: 'GITHUB_USERNAME',
+        passwordVariable: 'GITHUB_TOKEN'
+    )
+]) {
             sh '''
                 rm -rf repo-temp
                 git clone https://x-access-token:${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git repo-temp
