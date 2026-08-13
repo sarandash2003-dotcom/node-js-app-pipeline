@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: node-app
-        image: dassaran504/ultimate-cicd:6
+        image: dassaran504/ultimate-cicd:18
         ports:
         - containerPort: 3000
         resources:
