@@ -71,30 +71,57 @@ pipeline {
         GIT_REPO_NAME = "node-js-app-pipeline"
         GIT_USER_NAME = "dassaran504"
       }
-      withCredentials([
-    usernamePassword(
-        credentialsId: 'github',
-        usernameVariable: 'GITHUB_USERNAME',
-        passwordVariable: 'GITHUB_TOKEN'
-    )
-]) {
+   stage('Update Deployment File') {
+    environment {
+        GIT_REPO_NAME = "node-js-app-pipeline"
+        GIT_USER_NAME = "dassaran504"
+    }
+
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'github',
+                usernameVariable: 'GITHUB_USERNAME',
+                passwordVariable: 'GITHUB_TOKEN'
+            )
+        ]) {
             sh '''
+                set -e
+
                 rm -rf repo-temp
-                git clone https://x-access-token:${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git repo-temp
+
+                git clone \
+                  https://x-access-token:${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git \
+                  repo-temp
+
                 cd repo-temp
-                
+
                 git config user.email "sarandash2003@gmail.com"
                 git config user.name "${GIT_USER_NAME}"
 
-                sed -i "s|image: .*|image: ${DOCKER_REPO}:${BUILD_NUMBER}|g" node-app-manifests/deployment.yml
+                echo "Updating image to ${DOCKER_REPO}:${BUILD_NUMBER}"
+
+                sed -i \
+                  "s|image: .*|image: ${DOCKER_REPO}:${BUILD_NUMBER}|g" \
+                  node-app-manifests/deployment.yml
 
                 git add node-app-manifests/deployment.yml
-                git commit -m "Update node app image tag to ${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
-                git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git main
+
+                git commit \
+                  -m "Update node app image tag to ${BUILD_NUMBER} [skip ci]" \
+                  || echo "No changes to commit"
+
+                git push \
+                  https://x-access-token:${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git \
+                  main
             '''
         }
-      }
     }
+}
+    }
+  }
+}
+
   }
   post {
     always {
