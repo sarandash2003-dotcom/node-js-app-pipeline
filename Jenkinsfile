@@ -9,7 +9,7 @@ pipeline {
     skipDefaultCheckout(true)
   }
   environment {
-    DOCKER_REPO = 'dassaran/ultimate-cicd'
+    DOCKER_REPO = 'sarandash2003-dotcom/ultimate-cicd'
   }
   stages {
     stage('Prepare Tooling') {
@@ -69,7 +69,7 @@ pipeline {
     stage('Update Deployment File') {
       environment {
         GIT_REPO_NAME = "node-js-app-pipeline"
-        GIT_USER_NAME = "sarandash2003-dotcom"
+        GIT_USER_NAME = "dassaran504"
       }
       steps {
         withCredentials([
