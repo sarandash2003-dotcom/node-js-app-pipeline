@@ -11,7 +11,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_REPO = 'sarandash2003-dotcom/ultimate-cicd'
+        DOCKER_REPO = 'dassaran504/ultimate-cicd'
     }
 
     stages {
